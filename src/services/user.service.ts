@@ -1,17 +1,23 @@
 import bcrypt from "bcryptjs"
-import { prisma } from "../prisma/prisma.client"
+import { prisma } from "../prisma/client"
 
 export const registerUser = async (email: string, password: string) => {
-	const hashed = await bcrypt.hash(password, 10)
-	return prisma.user.create({
-		data: { email, password: hashed },
-	})
+	try {
+		const hash = await bcrypt.hash(password, 10)
+		return await prisma.user.create({ data: { email, password: hash } })
+	} catch (error) {
+		throw error
+	}
 }
 
-export const findUserByEmail = (email: string) => {
-	return prisma.user.findUnique({ where: { email } })
-}
+export const authenticateUser = async (email: string, password: string) => {
+	try {
+		const user = await prisma.user.findUnique({ where: { email } })
+		if (!user) return null
 
-export const validatePassword = (password: string, hash: string) => {
-	return bcrypt.compare(password, hash)
+		const isMatch = await bcrypt.compare(password, user.password)
+		return isMatch ? user : null
+	} catch (error) {
+		throw error
+	}
 }
