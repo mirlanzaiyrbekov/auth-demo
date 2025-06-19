@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { KeySquare, UserRound, UserRoundCheck } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import { KeySquare, Loader2, UserRound, UserRoundCheck } from "lucide-react"
 import type React from "react"
 import { Controller, useForm } from "react-hook-form"
 import { AuthScheme } from "../schemas/schemas"
+import { authService } from "../services/auth.service"
 import type { AuthSchemeType, FormButtonType } from "../types/form.types"
 import { Button } from "./ui/Button"
 import { Input } from "./ui/Input"
@@ -10,6 +12,15 @@ import { Label } from "./ui/Lable"
 import { Separator } from "./ui/Separator"
 
 export const SignUp: React.FC<{ handle: FormButtonType }> = ({ handle }) => {
+	const { mutateAsync, isPending } = useMutation({
+		mutationKey: ["register"],
+		mutationFn: authService.register,
+		onSuccess(response) {
+			console.log(response)
+			alert("Success registered")
+		},
+	})
+
 	const { control, handleSubmit } = useForm<AuthSchemeType>({
 		resolver: zodResolver(AuthScheme),
 		defaultValues: {
@@ -18,9 +29,7 @@ export const SignUp: React.FC<{ handle: FormButtonType }> = ({ handle }) => {
 		},
 	})
 
-	const submitHandle = (data: AuthSchemeType) => {
-		console.log(data)
-	}
+	const submitHandle = (data: AuthSchemeType) => mutateAsync(data)
 
 	return (
 		<form className="flex flex-col gap-3" onSubmit={handleSubmit(submitHandle)}>
@@ -68,7 +77,13 @@ export const SignUp: React.FC<{ handle: FormButtonType }> = ({ handle }) => {
 				)}
 			/>
 
-			<Button className="bg-black text-white">Register</Button>
+			<Button
+				disabled={isPending}
+				className="bg-black text-white flex items-center gap-1.5 justify-center"
+			>
+				{isPending && <Loader2 className="animate-spin" size={16} />}
+				Register
+			</Button>
 			<div className="flex flex-col gap-3 items-center">
 				<Separator className="max-w-52 w-full" />
 				<Button
