@@ -8,14 +8,16 @@ export const register: RequestHandler = async (
 ): Promise<any> => {
 	const { email, password } = req.body
 	if (!email || !password)
-		return res.status(400).json({ error: "Email and password required." })
+		return res
+			.status(400)
+			.json({ error: "Email and password required.", success: false })
 
 	try {
 		const user = await registerUser(email, password)
 		const token = generateToken({ id: user.id })
-		res.status(200).json({ token })
+		res.status(200).json({ token, success: true })
 	} catch (err: any) {
-		res.status(400).json({ error: "User already exists." })
+		res.status(400).json({ error: "User already exists.", success: false })
 	}
 }
 
@@ -25,14 +27,19 @@ export const login: RequestHandler = async (
 ): Promise<any> => {
 	const { email, password } = req.body
 	if (!email || !password)
-		return res.status(400).json({ error: "Email and password required." })
+		return res
+			.status(400)
+			.json({ error: "Email and password required.", success: false })
 
 	try {
 		const user = await authenticateUser(email, password)
-		if (!user) return res.status(401).json({ error: "Invalid credentials." })
+		if (!user)
+			return res
+				.status(401)
+				.json({ error: "Invalid credentials.", success: false })
 		const token = generateToken({ id: user.id })
-		res.status(200).json({ token })
+		res.status(200).json({ token, success: true })
 	} catch (error) {
-		res.status(500).json({ error: "Server error." })
+		res.status(500).json({ error: "Server error.", success: false })
 	}
 }
